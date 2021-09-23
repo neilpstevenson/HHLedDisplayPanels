@@ -22,8 +22,8 @@ This class encapsulates the platform driver for a panel
 
 
 // These define the refresh rate for the platform-specific settings
-static const uint64_t REFRESH_INTERVAL_uS = 1000;            // microseconds
-static const uint64_t MAX_OUTPUT_ENABLE_INTERVAL_uS = 768;   // microseconds, must be a multiple of the bit depth and at least 50uS less than REFRESH_INTERVAL_uS (for an ESP32 @ 240MHz)
+static const uint64_t REFRESH_INTERVAL_uS = 300;            // microseconds
+static const uint64_t MAX_OUTPUT_ENABLE_INTERVAL_uS = 256;   // microseconds, must be a multiple of the bit depth and at least 50uS less than REFRESH_INTERVAL_uS (for an ESP32 @ 240MHz)
 static const uint64_t OUTPUT_ENABLE_INT_LATENCY_uS = 2;      // microseconds, interrupt latency correction
 
 static const uint16_t MAX_BRIGHTNESS_PERCENT = 12; // 12-200% allowed

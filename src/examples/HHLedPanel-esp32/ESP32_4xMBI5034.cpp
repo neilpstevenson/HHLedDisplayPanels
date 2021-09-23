@@ -11,10 +11,10 @@ This version is for an ESP32-based board, driving up to
 // Statics
 static hw_timer_t *timer_Refresh = 0;
 static hw_timer_t *timer_OE = 0;
-static byte (*_frameBuffers)[1][4][24*16];
+static byte *_frameBuffers; // Array of [depth][bank][leds]
 static uint8_t _colourDepth;
 static uint8_t _planes;
-static uint8_t _chips;
+static uint16_t _bytesToSend;
 
 //////////////////////////////////////////////////////////////////////////
 // This piece of compile-time magic creates a lookup table to convert
@@ -57,13 +57,13 @@ static constexpr const uint32_t *HardwareGpioMapping = Mapping<256>::value;
 //////////////////////////////////////////////////////////////////////////
 
 
-void ESP32_4xMBI5034::Initialise(byte (&frameBuffers)[1][4][24*16], uint8_t colourDepth, uint8_t planes, uint8_t chips)
+void ESP32_4xMBI5034::Initialise(byte *frameBuffers, uint8_t colourDepth, uint8_t planes, uint16_t bytesToSend)
 {
   //interruptCallbackFn = refreshCallbackFn;
-  _frameBuffers = &frameBuffers;
+  _frameBuffers = frameBuffers;
   _colourDepth = colourDepth;
   _planes = planes;
-  _chips = chips;
+  _bytesToSend = bytesToSend;
   
   // Set up GPIO lines
   gpio_pad_select_gpio(PIN_D1);
@@ -116,16 +116,16 @@ void ESP32_4xMBI5034::StartDisplay()
 
 void IRAM_ATTR ESP32_4xMBI5034::RefreshInterrupt()
 {
-	static uint8_t bank = 0;
-  uint16_t bitsToSend = _chips * 16;  // Each chip drives 16 LEDs
+  static uint8_t bank = 0;
+  static uint8_t depth = 0;
 
-	byte *f = (*_frameBuffers)[0][bank]; //_panel->frame[bank];
+	byte *f = _frameBuffers + (bank + depth*_planes)*_bytesToSend;
 	GPIO.out_w1ts = BIT(PIN_OE);      // disable output
 
   // Get the current port state, so we don't change unrelated lines
   uint32_t out = GPIO.out & ~(BIT(PIN_D1) | BIT(PIN_D2) | BIT(PIN_D3) | BIT(PIN_D4) | BIT(PIN_D5) | BIT(PIN_D6) | BIT(PIN_D7) | BIT(PIN_D8) | BIT(PIN_A0) | BIT(PIN_A1) | BIT(PIN_LAT) | BIT(PIN_CLK)) | BIT(PIN_OE); 
   
-	for (uint16_t n = 0; n < bitsToSend; n++) 
+	for (uint16_t n = 0; n < _bytesToSend; n++) 
 	{
     // Update all 4 panels using 2 data lines/panel using mapping table
     // this version takes about 39uS for all 384 outputs, i.e. 10MHz rate
@@ -142,13 +142,17 @@ void IRAM_ATTR ESP32_4xMBI5034::RefreshInterrupt()
 
   // Disable (switch off) the current row after a defined interval
   timerRestart(timer_OE);
-  timerAlarmWrite(timer_OE, MAX_OUTPUT_ENABLE_INTERVAL_uS - OUTPUT_ENABLE_INT_LATENCY_uS, false);
+  timerAlarmWrite(timer_OE, (MAX_OUTPUT_ENABLE_INTERVAL_uS >> depth)- OUTPUT_ENABLE_INT_LATENCY_uS, false);
   GPIO.out_w1tc = BIT(PIN_OE);    // enable output
   timerAlarmEnable(timer_OE);
 
 	if (++bank >= _planes) 
   {
 	  bank=0;
+    if (++depth >= _colourDepth) 
+    {
+      depth=0;
+    }
   }
 }
 

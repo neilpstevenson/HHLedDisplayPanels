@@ -15,7 +15,7 @@ template<class PANELTYPE> class LedPanelDisplay : public Adafruit_GFX
     
     void drawPixel(int16_t x, int16_t y, uint16_t color) 
     {
-      _panel.setpixel(x,y,color);
+      _panel.drawPixel(x,y,color);
     }
 
   //  uint16_t newColor(uint8_t red, uint8_t green, uint8_t blue);
