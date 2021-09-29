@@ -79,8 +79,9 @@ added 'macro to text commands' to store chars in Filemem and clean up somespace 
 #include "ESP32_4xMBI5034v2.h"
 #include "LedPanelDisplay.h"
 
-LedPanelDisplay<HHLedPanel_4x64x16<ESP32_4xMBI5034v2>> panel;
+LedPanelDisplay<HHLedPanel_4x64x16<ESP32_4xMBI5034v2, 5>> panel;
 
+#define MAX_BRIGHTNESS  12  // 12%-200%. At 12% four panels consume around 6 amps, at 100% around 40 amps.
 #define RGB565(r,g,b) (((b) >> 3) | ((g) >> 2 << 5) | ((r) >> 3 << 11))
 
 #define BLACK    0x0000
@@ -92,23 +93,12 @@ LedPanelDisplay<HHLedPanel_4x64x16<ESP32_4xMBI5034v2>> panel;
 #define YELLOW   0xFFE0 
 #define WHITE    0xFFFF
 
-/*
-#define BLACK 0
-#define BLUE 1
-#define GREEN 2
-#define CYAN 3
-#define RED 4
-#define MAGENTA 5
-#define YELLOW 6
-#define WHITE 7
-*/
-
 void setup() {
   //Serial.begin(115200);
   //Serial.println("Begin...");
   
   panel.FillBuffer(0x00);         // Set all LEDs off. (Black)
-  panel.initialise();             // Start display
+  panel.initialise(MAX_BRIGHTNESS);             // Start display
 
   panel.FillBuffer(0x00);
   panel.setTextSize(1);

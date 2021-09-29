@@ -3,9 +3,7 @@ This class encapsulates the 64x16 panels
 ********************************************************************/
 #include <Arduino.h>
 
-static const int COLOUR_DEPTH = 5;
-
-template<class PLATFORMTYPE> class HHLedPanel_4x64x16
+template<class PLATFORMTYPE, int COLOUR_DEPTH> class HHLedPanel_4x64x16
 {
 private:
   byte frameBuffers[COLOUR_DEPTH][4][24*16];  // [bit][plane][chip]

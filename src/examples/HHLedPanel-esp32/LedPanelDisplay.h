@@ -7,10 +7,10 @@ template<class PANELTYPE> class LedPanelDisplay : public Adafruit_GFX
     {
     }
     
-    void initialise()
+    void initialise(uint16_t maxBrightnessPercent)
     {
       // Setup the hardware
-      _panel.initialise(12);
+      _panel.initialise(maxBrightnessPercent);
     }
     
     void drawPixel(int16_t x, int16_t y, uint16_t color) 
