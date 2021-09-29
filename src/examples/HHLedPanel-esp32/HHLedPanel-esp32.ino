@@ -76,10 +76,10 @@ added 'macro to text commands' to store chars in Filemem and clean up somespace 
 #include "hhLogoBmp.h"
 #include "bmp.h"
 #include "HHLedPanel_4x64x16.h"
-#include "ESP32_4xMBI5034.h"
+#include "ESP32_4xMBI5034v2.h"
 #include "LedPanelDisplay.h"
 
-LedPanelDisplay<HHLedPanel_4x64x16<ESP32_4xMBI5034>> panel;
+LedPanelDisplay<HHLedPanel_4x64x16<ESP32_4xMBI5034v2>> panel;
 
 #define RGB565(r,g,b) (((b) >> 3) | ((g) >> 2 << 5) | ((r) >> 3 << 11))
 
@@ -119,15 +119,15 @@ void setup() {
   panel.setTextColor(WHITE);  
   panel.println(F("TMID - 0,16"));
   panel.setCursor(0, 32);
-  panel.setTextColor(GREEN);  
+  panel.setTextColor(WHITE);  
   panel.println(F("BMID - 0,32"));
   panel.setCursor(0, 48);
-  panel.setTextColor(MAGENTA);  
+  panel.setTextColor(WHITE);  
   panel.println(F("BOT - 0,48"));
 
   delay(2000);
   panel.fillScreen(WHITE);
-  delay(1000);
+  delay(2000);
 }
 
 /*
@@ -326,6 +326,7 @@ void loop(){
       panel.printf("Fade %d", ct);
       delay(400);
     }
+/*    
     for (int ct=0; ct < 256; ct += 8)
     {
       panel.FillBuffer(0x00);
@@ -380,7 +381,8 @@ void loop(){
       panel.printf("Fade %d", ct);
       delay(400);
     }
-      delay(3000); 
+*/
+    delay(3000); 
 
     for(int h = 0; h < 48; h++)
     {
@@ -393,7 +395,7 @@ void loop(){
       delay(25);
     }
 
-return;
+//return;
 
       panel.FillBuffer(0x00);
       panel.setTextSize(1);
