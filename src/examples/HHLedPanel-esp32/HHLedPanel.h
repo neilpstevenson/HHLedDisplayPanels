@@ -23,30 +23,52 @@ SOFTWARE.
 ******************************************************************************/
 
 /******************************************************************************
-This file contains the pin assignments and performance criteria used to refresh 
-a set of 4 LED display panels using MBI5034 chips arranged as 2 data pins per 
-panel (i.e. maximum of 8 data lines currently).
+This class implements the Adafruit GFX interface to allow all of the Adafruit
+graphic primitives and examples to be used with the Hitchin Hackspce LED display 
+panels in the same way as other Adafruit LCD and OLED display panels.
 ******************************************************************************/
+#include <Adafruit_GFX.h>
 
-// These are for the ESP32-DevKitC board with WROOM chip
-// Only unused GPIO pins 0-31 are usable as the PIN_Dx or PIN_Ax pins
-#define PIN_D1    GPIO_NUM_18  // D1 on Panel 1 (Top)
-#define PIN_D2    GPIO_NUM_5   // D2 on Panel 1
-#define PIN_D3    GPIO_NUM_17  // D1 on Panel 2
-#define PIN_D4    GPIO_NUM_16  // D2 on Panel 2
-#define PIN_D5    GPIO_NUM_4   // D1 on Panel 3
-#define PIN_D6    GPIO_NUM_0   // D2 on Panel 3
-#define PIN_D7    GPIO_NUM_2   // D1 on Panel 4
-#define PIN_D8    GPIO_NUM_15  // D2 on Panel 4 (Bottom)
+template<class PANELTYPE> class HHLedPanel : public Adafruit_GFX
+{
+  private:
+    PANELTYPE _panel_impl;
+    
+  public: 
+    HHLedPanel() : Adafruit_GFX(_panel_impl.getWidth(), _panel_impl.getHeight())
+    {
+    }
+    
+    // Setup the hardware
+    void initialise(uint16_t maxBrightnessPercent)
+    {
+      _panel_impl.initialise(maxBrightnessPercent);
+    }
+    
+    void drawPixel(int16_t x, int16_t y, uint16_t color) 
+    {
+      _panel_impl.drawPixel(x,y,color);
+    }
 
-// PIN_Ax can also share the PIN_Dx data line pins to save outputs required
-#define PIN_A0    GPIO_NUM_5   // A0 on all Panels
-#define PIN_A1    GPIO_NUM_18  // A1 on all Panels
+    void fillScreen(uint16_t color)
+    {
+      if(color == 0)
+        _panel_impl.Clear();
+      else if(color == 0xffff)
+        _panel_impl.Clear(true);
+      else
+        Adafruit_GFX::fillScreen(color);
+    }
+    
+    void clear()
+    {
+      _panel_impl.Clear();
+    }
+	
+    // Construct a colour value from its RGB parts
+    static uint16_t make_colour(uint8_t red, uint8_t green, uint8_t blue)
+    {
+      return (((blue) >> 3) | ((green) >> 2 << 5) | ((red) >> 3 << 11));
+    }
 
-// The control pins can be on any unused GPIO pins 0-36
-#define PIN_CLK   GPIO_NUM_22  // CLK on all Panels
-#define PIN_LAT   GPIO_NUM_21  // LAT on all Panels
-#define PIN_OE    GPIO_NUM_19  // OE on all Panels
-
-// Target total refresh rate in microseconds. 6000uS gives a good flicker-free display at around 150Hz
-static const uint64_t REFRESH_INTERVAL_uS = 6000;
+};

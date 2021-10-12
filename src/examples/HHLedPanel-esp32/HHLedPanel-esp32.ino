@@ -70,19 +70,19 @@ added 'macro to text commands' to store chars in Filemem and clean up somespace 
 
 ******************************************************************************/
 
-#include <Adafruit_GFX.h>
+// Panel type and arrangement
+#include "HHLedPanel_4x64x16_impl.h"
+// Hardware driver
+#include "ESP32_4xMBI5034.h"
+// Adafruit GFX interface
+#include "HHLedPanel.h"
+
 #include <gfxfont.h>
 #include <fonts/FreeSerifBoldItalic9pt7b.h>
 #include "hhLogoBmp.h"
 #include "bmp.h"
-#include "HHLedPanel_4x64x16.h"
-#include "ESP32_4xMBI5034v2.h"
-#include "LedPanelDisplay.h"
-
-LedPanelDisplay<HHLedPanel_4x64x16<ESP32_4xMBI5034v2, 5>> panel;
 
 #define MAX_BRIGHTNESS  12  // 12%-200%. At 12% four panels consume around 6 amps, at 100% around 40 amps.
-#define RGB565(r,g,b) (((b) >> 3) | ((g) >> 2 << 5) | ((r) >> 3 << 11))
 
 #define BLACK    0x0000
 #define BLUE     0x001F
@@ -93,14 +93,18 @@ LedPanelDisplay<HHLedPanel_4x64x16<ESP32_4xMBI5034v2, 5>> panel;
 #define YELLOW   0xFFE0 
 #define WHITE    0xFFFF
 
+// Static display panel interface
+HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 5>> panel;
+
+
 void setup() {
   //Serial.begin(115200);
   //Serial.println("Begin...");
   
-  panel.FillBuffer(0x00);         // Set all LEDs off. (Black)
+  panel.clear();         // Set all LEDs off. (Black)
   panel.initialise(MAX_BRIGHTNESS);             // Start display
 
-  panel.FillBuffer(0x00);
+  panel.clear();
   panel.setTextSize(1);
   panel.setCursor(0, 0);
   panel.setTextColor(WHITE);  
@@ -122,7 +126,7 @@ void setup() {
 
 /*
 void testText1() {
-  panel.FillBuffer(0x00);
+  panel.clear();
   panel.setCursor(0, 0);
   panel.setTextColor(GREEN);  
   panel.println("The Quick ");
@@ -141,7 +145,7 @@ void testText1() {
 
 
 void testText2() {
-  panel.FillBuffer(0x00);
+  panel.clear();
   panel.setTextSize(1);
   panel.setCursor(15, 17);
   panel.setTextColor(WHITE);  
@@ -155,7 +159,7 @@ void testText2() {
 
 
 void testText3() {
-  panel.FillBuffer(0x00);
+  panel.clear();
   panel.setCursor(3, 22);
   panel.setTextColor(YELLOW);  
   panel.setTextSize(2);
@@ -279,7 +283,7 @@ void testFonts(){
 
 
 void loop(){
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setCursor(3, 18);
       panel.setTextColor(WHITE);  
       panel.setTextSize(2);
@@ -300,18 +304,18 @@ void loop(){
 
     for (int ct=0; ct < 256; ct += 8)
     {
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setCursor(1, 18);
-      panel.setTextColor(RGB565(ct, ct, ct));  
+      panel.setTextColor(panel.make_colour(ct, ct, ct));  
       panel.setTextSize(1);
       panel.printf("Fade %d", ct);
       delay(400);
     }
     for (int ct=256-8; ct > 0; ct -= 8)
     {
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setCursor(1, 18);
-      panel.setTextColor(RGB565(ct, ct, ct));  
+      panel.setTextColor(panel.make_colour(ct, ct, ct));  
       panel.setTextSize(1);
       panel.printf("Fade %d", ct);
       delay(400);
@@ -319,54 +323,54 @@ void loop(){
 /*    
     for (int ct=0; ct < 256; ct += 8)
     {
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setCursor(1, 18);
-      panel.setTextColor(RGB565(0, ct, 0));  
+      panel.setTextColor(panel.make_colour(0, ct, 0));  
       panel.setTextSize(1);
       panel.printf("Fade %d", ct);
       delay(400);
     }
     for (int ct=256-8; ct > 0; ct -= 8)
     {
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setCursor(1, 18);
-      panel.setTextColor(RGB565(0, ct, 0));  
+      panel.setTextColor(panel.make_colour(0, ct, 0));  
       panel.setTextSize(1);
       panel.printf("Fade %d", ct);
       delay(400);
     }
     for (int ct=0; ct < 256; ct += 8)
     {
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setCursor(1, 18);
-      panel.setTextColor(RGB565(0, 0, ct));  
+      panel.setTextColor(panel.make_colour(0, 0, ct));  
       panel.setTextSize(1);
       panel.printf("Fade %d", ct);
       delay(400);
     }
     for (int ct=256-8; ct > 0; ct -= 8)
     {
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setCursor(1, 18);
-      panel.setTextColor(RGB565(0, 0, ct));  
+      panel.setTextColor(panel.make_colour(0, 0, ct));  
       panel.setTextSize(1);
       panel.printf("Fade %d", ct);
       delay(400);
     }
     for (int ct=0; ct < 256; ct += 8)
     {
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setCursor(1, 18);
-      panel.setTextColor(RGB565(ct, 0, 0));  
+      panel.setTextColor(panel.make_colour(ct, 0, 0));  
       panel.setTextSize(1);
       panel.printf("Fade %d", ct);
       delay(400);
     }
     for (int ct=256-8; ct > 0; ct -= 8)
     {
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setCursor(1, 18);
-      panel.setTextColor(RGB565(ct, 0, 0));  
+      panel.setTextColor(panel.make_colour(ct, 0, 0));  
       panel.setTextSize(1);
       panel.printf("Fade %d", ct);
       delay(400);
@@ -376,18 +380,20 @@ void loop(){
 
     for(int h = 0; h < 48; h++)
     {
+      panel.clear();
       panel.drawBitmap(0, h, (const uint8_t *)&LHSlogoBitmap, 64, 64, WHITE, BLUE);
       delay(25);
     }
     for(int h = 48; h >= 0; h--)
     {
+      panel.clear();
       panel.drawBitmap(0, h, (const uint8_t *)&LHSlogoBitmap, 64, 64, WHITE, BLUE);
       delay(25);
     }
 
 //return;
 
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setTextSize(1);
  
       panel.setCursor(24, 5);
@@ -404,7 +410,7 @@ void loop(){
       delay(3000); 
 
    for (int ct=0; ct <= 44; ct++){
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setTextSize(1);
       panel.setCursor(0, ct);
       panel.setTextColor(WHITE);  
@@ -422,7 +428,7 @@ void loop(){
       panel.drawBitmap(0, 0, (const uint8_t *)&paul64, 64, 64, GREEN, BLACK);
       delay(5000);
 
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setTextSize(1);
       panel.setCursor(30, 5);
       panel.setTextColor(YELLOW);      
@@ -443,7 +449,7 @@ void loop(){
       delay(3000); 
 
 
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setTextSize(1);
       panel.setCursor(2, 5);
       panel.setTextColor(WHITE);      
@@ -462,7 +468,7 @@ void loop(){
       panel.println(F("Printing"));      
       delay(5000); 
 
-      panel.FillBuffer(0x00);
+      panel.clear();
       panel.setTextSize(2);
       
       panel.setCursor(10, 8);
@@ -478,12 +484,12 @@ void loop(){
 int ledState;
 for (int ct=0; ct <= 11; ct++){
     if (ledState == LOW) {
-        panel.FillBuffer(0x00);
+        panel.clear();
         panel.drawBitmap(ct*2, 20, (const uint8_t *)&Invader1, 24, 18, BLACK, GREEN);
         delay(300); 
       ledState = HIGH;
     } else {
-        panel.FillBuffer(0x00);
+        panel.clear();
         panel.drawBitmap(ct*2, 20, (const uint8_t *)&Invader2, 24, 18, BLACK, GREEN);
         delay(300);  
       ledState = LOW;
@@ -516,13 +522,13 @@ for (int ct=0; ct <= 1500; ct++){
 }
 
       delay(50);
-      panel.FillBuffer(0xff);
+      panel.fillScreen(WHITE);
       delay(250);
-      panel.FillBuffer(0x00);
+      panel.clear();
       delay(150);
-      panel.FillBuffer(0xff);
+      panel.fillScreen(WHITE);
       delay(150);
-      panel.FillBuffer(0x00);      
+      panel.clear();      
       
 delay(4000);
 }

@@ -1,16 +1,40 @@
-/********************************************************************
-This class encapsulates the platform driver for a panel
-composed of MBI5034 chips, each driving 16 LEDs.
-This version is for an ESP32-based board, driving up to 
-4 panels.
-********************************************************************/
+/******************************************************************************
+MIT License
+
+Copyright (c) 2021 Neil Stevenson (Twitter: @mediablip)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
+/******************************************************************************
+This class encapsulates the platform-specific driver for refreshing a set of
+4 LED display panels using MBI5034 chips arranged as 2 data pins per panel
+(i.e. maximum of 8 data lines currently).
+
+This version uses a fast timer interrupt to output one logical row (2 physical 
+rows) per interrupt and allows up to a 5-bit colour depth to be used.
+******************************************************************************/
 #include "ESP32_4xMBI5034.h"
 #include "ESP32_4xMBI5034_Pins.h"
-//#include "HHLedPanel_4x64x16.h"
 
 // Statics
 static hw_timer_t *timer_Refresh = 0;
-static hw_timer_t *timer_OE = 0;
 static byte *_frameBuffers; // Array of [depth][bank][leds]
 static uint8_t _colourDepth;
 static uint8_t _planes;
@@ -101,11 +125,7 @@ void ESP32_4xMBI5034::Initialise(byte *frameBuffers, uint8_t colourDepth, uint8_
   // Create the interrupts to refresh the panels
   timer_Refresh = timerBegin(0, 80, true);  // 80 for Microseconds
   timerAttachInterrupt(timer_Refresh, &RefreshInterrupt, true);
-  timerAlarmWrite(timer_Refresh, REFRESH_INTERVAL_uS, true);
- 
-  // Timer to control the display on-time, i.e. the brightness of the panel
-  timer_OE = timerBegin(1, 80, true);  // 80 for Microseconds
-  timerAttachInterrupt(timer_OE, &OutpuEnableEndInterrupt, true);
+  timerAlarmWrite(timer_Refresh, (REFRESH_INTERVAL_uS >> _colourDepth >> 2), true);
 }
 
 void ESP32_4xMBI5034::StartDisplay()
@@ -116,22 +136,39 @@ void ESP32_4xMBI5034::StartDisplay()
 
 void IRAM_ATTR ESP32_4xMBI5034::RefreshInterrupt()
 {
-  static uint8_t bank = 0;
-  static uint8_t depth = 0;
+	static uint8_t bank = 0;
+	static uint8_t depth = 0;   // 0 = for top bit
+	static uint8_t intCount = 0;
 
-	byte *f = _frameBuffers + (bank + depth*_planes)*_bytesToSend;
+	// We ignore the interrups unless the refresh time has expired for the bit currently being displayed
+	if(!(++intCount >> (_colourDepth - depth - 1)))
+		return;
+	intCount = 0;
+	
 	GPIO.out_w1ts = BIT(PIN_OE);      // disable output
 
-  // Get the current port state, so we don't change unrelated lines
-  uint32_t out = GPIO.out & ~(BIT(PIN_D1) | BIT(PIN_D2) | BIT(PIN_D3) | BIT(PIN_D4) | BIT(PIN_D5) | BIT(PIN_D6) | BIT(PIN_D7) | BIT(PIN_D8) | BIT(PIN_A0) | BIT(PIN_A1) | BIT(PIN_LAT) | BIT(PIN_CLK)) | BIT(PIN_OE); 
+	if (++bank >= _planes) 
+	{
+		bank=0;
+		if (++depth >= _colourDepth) 
+		{
+		  depth=0;
+		}
+	}
+
+	byte *f = _frameBuffers + (bank + depth*_planes)*_bytesToSend;
+
+	// Get the current port state, so we don't change unrelated lines
+	uint32_t out = GPIO.out
+                & ~(BIT(PIN_D1) | BIT(PIN_D2) | BIT(PIN_D3) | BIT(PIN_D4) | BIT(PIN_D5) | BIT(PIN_D6) | BIT(PIN_D7) | BIT(PIN_D8) | BIT(PIN_A0) | BIT(PIN_A1) | BIT(PIN_LAT) | BIT(PIN_CLK)) 
+                | BIT(PIN_OE); 
   
 	for (uint16_t n = 0; n < _bytesToSend; n++) 
 	{
-    // Update all 4 panels using 2 data lines/panel using mapping table
-    // this version takes about 39uS for all 384 outputs, i.e. 10MHz rate
-    GPIO.out = out | HardwareGpioMapping[*f++];
-    GPIO.out_w1ts = BIT(PIN_CLK);  
-
+		// Update all 4 panels using 2 data lines/panel using mapping table
+		// this version takes about 39uS for all 384 outputs, i.e. 10MHz rate
+		GPIO.out = out | HardwareGpioMapping[*f++];
+		GPIO.out_w1ts = BIT(PIN_CLK);  
 	}
 	GPIO.out_w1tc = BIT(PIN_CLK);  
 
@@ -140,25 +177,8 @@ void IRAM_ATTR ESP32_4xMBI5034::RefreshInterrupt()
 	GPIO.out_w1ts = BIT(PIN_LAT);   // toggle latch
 	GPIO.out_w1tc = BIT(PIN_LAT); 
 
-  // Disable (switch off) the current row after a defined interval
-  timerRestart(timer_OE);
-  timerAlarmWrite(timer_OE, (MAX_OUTPUT_ENABLE_INTERVAL_uS >> depth)- OUTPUT_ENABLE_INT_LATENCY_uS, false);
-  GPIO.out_w1tc = BIT(PIN_OE);    // enable output
-  timerAlarmEnable(timer_OE);
-
-	if (++bank >= _planes) 
-  {
-	  bank=0;
-    if (++depth >= _colourDepth) 
-    {
-      depth=0;
-    }
-  }
-}
-
-void IRAM_ATTR ESP32_4xMBI5034::OutpuEnableEndInterrupt()
-{
-  GPIO.out_w1ts = BIT(PIN_OE);      // disable output
+	GPIO.out_w1tc = BIT(PIN_OE);    // enable output
+	timerRestart(timer_Refresh);    // To take into account the data output time
 }
 
 /*
@@ -181,7 +201,9 @@ void ESP32_4xMBI5034::SetBrightness(uint16_t brighnessPercent)
   // Calculate the approx brightness control around 100%
   uint32_t brightness = 0;
   const uint32_t brightness100pc = 0x2b;
-  if(brighnessPercent <= 100)
+  if(brighnessPercent <= 12)
+    brightness = 0;
+  else if(brighnessPercent <= 100)
     brightness = (brighnessPercent - 12) * brightness100pc / 88;
   else if(brighnessPercent >= 200)
   {
@@ -190,19 +212,25 @@ void ESP32_4xMBI5034::SetBrightness(uint16_t brighnessPercent)
   else
     brightness = (brighnessPercent - 100) * (63-brightness100pc) / 100 + 0x2b;
 
+  // Get the current port state, so we don't change unrelated lines
+  uint32_t all_D_bits = (BIT(PIN_D1) | BIT(PIN_D2) | BIT(PIN_D3) | BIT(PIN_D4) | BIT(PIN_D5) | BIT(PIN_D6) | BIT(PIN_D7) | BIT(PIN_D8));
+  uint32_t out = GPIO.out & ~all_D_bits & ~(BIT(PIN_A0) | BIT(PIN_A1) | BIT(PIN_LAT) | BIT(PIN_CLK) | BIT(PIN_OE)); 
+  
   for(int bank = 0; bank < 4; bank++)
   {
     uint32_t addr = ((bank & 1) << PIN_A0) | ((bank & 2) >> 1 << PIN_A1);
     
     // Need to send the brightness command to each of the chips
-    GPIO.out = addr | BIT(PIN_OE);  // Set address
+    GPIO.out = addr | out | BIT(PIN_OE);  // Set address
     for(int chip = 0; chip < 24; chip++)
     {
       //GPIO.out_w1ts = BIT(PIN_LAT); // Assert LAT, so chip recoginises as a control write
       uint16_t controlRegister = 0b0111000101000000 | brightness;
       for (uint16_t n = 0; n < 16; n++, controlRegister <<= 1) 
       {
-        GPIO.out = ((controlRegister & 0x8000) >> 15 << PIN_D1) | ((controlRegister & 0x8000) >> 15 << PIN_D2) | (n < 12 || chip != 23 ? 0 : BIT(PIN_LAT)) | addr;
+        GPIO.out = ((controlRegister & 0x8000) ? all_D_bits : 0)
+                    | (n < 12 || chip != 23 ? 0 : BIT(PIN_LAT)) 
+                    | addr | out;
         GPIO.out_w1ts = BIT(PIN_CLK);  
       }
       GPIO.out_w1tc = BIT(PIN_CLK);  
