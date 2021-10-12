@@ -71,11 +71,11 @@ added 'macro to text commands' to store chars in Filemem and clean up somespace 
 ******************************************************************************/
 
 // Panel type and arrangement
-#include "HHLedPanel_4x64x16_impl.h"
+#include <HHLedPanel_4x64x16_impl.h>
 // Hardware driver
-#include "ESP32_4xMBI5034.h"
+#include <ESP32_4xMBI5034.h>
 // Adafruit GFX interface
-#include "HHLedPanel.h"
+#include <HHLedPanel.h>
 
 #include <gfxfont.h>
 #include <fonts/FreeSerifBoldItalic9pt7b.h>
