@@ -48,5 +48,9 @@ panel (i.e. maximum of 8 data lines currently).
 #define PIN_LAT   GPIO_NUM_21  // LAT on all Panels
 #define PIN_OE    GPIO_NUM_19  // OE on all Panels
 
+// All panel refreshes are done through a hardware timer interrupt
+// Change this if it clashes with other usages (0-2)
+#define REFRESH_TIMER_NUMBER	0
+
 // Target total refresh rate in microseconds. 6000uS gives a good flicker-free display at around 150Hz
-static const uint64_t REFRESH_INTERVAL_uS = 6000;
+static const uint64_t REFRESH_INTERVAL_uS = 12000;

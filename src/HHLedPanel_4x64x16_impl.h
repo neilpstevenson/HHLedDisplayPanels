@@ -29,10 +29,11 @@ as 4 panels of 64x16 LEDs aranged vertically and driven in parallel by the
 platform driver.
 ******************************************************************************/
 #include <Arduino.h>
+#include "ledpanel-gamma8.h"
 
 template<class PLATFORMTYPE, unsigned short COLOUR_DEPTH> class HHLedPanel_4x64x16_impl
 {
-  static_assert( COLOUR_DEPTH > 0 && COLOUR_DEPTH <= 5, "Maximum colour depth supported is 5" );
+  static_assert( COLOUR_DEPTH > 0 && COLOUR_DEPTH <= 6, "Maximum colour depth supported is 6" );
 
 private:
   static const uint16_t CHIPS_PER_DATA_LINE = 24;
@@ -50,6 +51,9 @@ public:
 	// Set the base brighness
 	PLATFORMTYPE::SetBrightness(maxBrightnessPercent);
 	
+	// Clear the screen
+	FillBuffer(0);
+
 	// Start refrshing the screen
 	PLATFORMTYPE::StartDisplay();
   }
@@ -70,7 +74,12 @@ public:
     // Clip to panel
     if(x < 0 || x >= getWidth() || y < 0 || y >= getHeight())
       return;
-      
+
+    // Split the colour into RGB parts and gamma-correct the result
+    uint8_t red = gamma6[(col >> 10) & 0x3e];
+    uint8_t green = gamma6[(col >> 5) & 0x3f];
+    uint8_t blue = gamma6[(col << 1) & 0x3e];
+   
 	  int16_t off = (x & 7) + (x & 0xf8)*6 + (y & 4)*2;
 	  byte row = y & 3;
 	  byte b = (1 << ((y & 0x3f) >> 3));
@@ -79,7 +88,7 @@ public:
     {
   	  byte *p = & frameBuffers[depth][row][off];
       // Blue LED
-      if ( col & (0x0010 >> depth) ) 
+      if ( blue & (0x80 >> depth) ) 
       {
         *p |= b;
       } 
@@ -90,7 +99,7 @@ public:
       p += LEDS_PER_CHIP;
   
       // Green LED
-      if ( col & (0x0400 >> depth) ) 
+      if ( green & (0x80 >> depth) ) 
       {
         *p |= b;
       } 
@@ -101,7 +110,7 @@ public:
       p += LEDS_PER_CHIP;
       
       // Red LED
-      if ( col & (0x8000 >> depth) ) 
+      if ( red & (0x80 >> depth) ) 
       {
         *p |= b;
       } 

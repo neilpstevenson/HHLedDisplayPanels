@@ -76,18 +76,25 @@ struct Mapping <0, Rest...>
 template<uint32_t... Rest>
 constexpr uint32_t Mapping<0, Rest...>::value[];
 
-static constexpr const uint32_t *HardwareGpioMapping = Mapping<256>::value;
+//static constexpr const uint32_t *HardwareGpioMapping = Mapping<256>::value;
+static uint32_t *HardwareGpioMapping;
 
 //////////////////////////////////////////////////////////////////////////
 
 
 void ESP32_4xMBI5034::Initialise(byte *frameBuffers, uint8_t colourDepth, uint8_t planes, uint16_t bytesToSend)
 {
-  //interruptCallbackFn = refreshCallbackFn;
   _frameBuffers = frameBuffers;
   _colourDepth = colourDepth;
   _planes = planes;
   _bytesToSend = bytesToSend;
+
+  // ensure GPIO pin mapping is in RAM (needed if you also use SPIFFS)
+  if(!HardwareGpioMapping)
+  {
+    HardwareGpioMapping = new uint32_t[256];
+    memcpy(HardwareGpioMapping, Mapping<256>::value, sizeof(Mapping<256>::value));
+  }
   
   // Set up GPIO lines
   gpio_pad_select_gpio(PIN_D1);
@@ -123,7 +130,7 @@ void ESP32_4xMBI5034::Initialise(byte *frameBuffers, uint8_t colourDepth, uint8_
   gpio_set_level(PIN_CLK, 0);
 
   // Create the interrupts to refresh the panels
-  timer_Refresh = timerBegin(0, 80, true);  // 80 for Microseconds
+  timer_Refresh = timerBegin(REFRESH_TIMER_NUMBER, 80, true);  // 80 for Microseconds
   timerAttachInterrupt(timer_Refresh, &RefreshInterrupt, true);
   timerAlarmWrite(timer_Refresh, (REFRESH_INTERVAL_uS >> _colourDepth >> 2), true);
 }
