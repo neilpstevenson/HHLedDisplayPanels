@@ -24,7 +24,7 @@
 #if defined(ARDUINO_ARCH_SAMD) && defined(SEEED_GROVE_UI_WIRELESS)
 #define GIF_FILENAME "/badger.gif" //"/ezgif.com-optimize.gif"
 #elif defined(ESP32)
-#define GIF_FILENAME "/ezgif.com-small.gif" //"/ezgif.com-optimize.gif"
+#define GIF_FILENAME "/santa.gif" //"/xmastree.gif" //"/ezgif.com-small.gif" //"/badger.gif" //"/ezgif.com-optimize.gif"
 #else
 #define GIF_FILENAME "/badger.gif" //"/ezgif.com-optimize.gif"
 #endif
@@ -119,7 +119,7 @@ void loop()
       }
       else
       {
-        uint8_t *buf = (uint8_t *)malloc(gif->width * gif->height);
+        uint8_t *buf = (uint8_t *)calloc(gif->width, gif->height);
         if (!buf)
         {
           Serial.println(F("buf malloc failed!"));
