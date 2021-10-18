@@ -33,6 +33,7 @@ template<class PANELTYPE> class HHLedPanel : public Adafruit_GFX
 {
   private:
     PANELTYPE _panel_impl;
+	uint16_t block_x, block_y, block_w, block_h;
     
   public: 
     HHLedPanel() : Adafruit_GFX(_panel_impl.getWidth(), _panel_impl.getHeight())
@@ -45,6 +46,47 @@ template<class PANELTYPE> class HHLedPanel : public Adafruit_GFX
       _panel_impl.initialise(maxBrightnessPercent);
     }
     
+	// These are for compatibility with the Adafruit_SPITFT interface
+	void begin(uint32_t freq = 0)
+	{
+	}
+   
+    void setAddrWindow(uint16_t x, uint16_t y, uint16_t w,
+                             uint16_t h) 
+	{
+		block_x = x;
+		block_y = y;
+		block_w = w;
+		block_h = h;
+	}
+	
+	void writePixels(uint16_t *colors, uint32_t len, bool block,
+                                  bool bigEndian)
+	{
+		// Bit simplistic, but will do for now
+		for(uint16_t pixel = 0; pixel < len; pixel++)
+		{
+			drawPixel(pixel % block_w + block_x, pixel / block_w + block_y, colors[pixel]);
+		}
+	}
+	
+	// These are for compatibility with the Arduino_GFX interface
+	void drawIndexedBitmap(int16_t x, int16_t y, uint8_t *bitmap, uint16_t *color_index, int16_t w, int16_t h)
+	{
+		//Serial.printf("\ndib: %d,%d %d,%d\n", x, y, w, h);
+		int32_t offset = 0;
+		startWrite();
+		for (int16_t j = 0; j < h; j++, y++)
+		{
+			for (int16_t i = 0; i < w; i++)
+			{
+				//Serial.printf("%3d",bitmap[offset]);
+				_panel_impl.drawPixel(x + i, y, color_index[bitmap[offset++]]);
+			}
+		}
+		endWrite();
+	}
+	
     void drawPixel(int16_t x, int16_t y, uint16_t color) 
     {
       _panel_impl.drawPixel(x,y,color);
