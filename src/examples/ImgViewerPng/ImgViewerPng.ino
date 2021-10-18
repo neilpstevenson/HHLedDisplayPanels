@@ -79,7 +79,6 @@ void setup()
 
   // Start the display
   panel->initialise(MAX_BRIGHTNESS);
-  panel->fillScreen(BLACK);
 }
 
 void displayPng(const char *filename)
