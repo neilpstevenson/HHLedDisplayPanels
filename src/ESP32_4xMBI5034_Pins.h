@@ -53,5 +53,7 @@ panel (i.e. maximum of 8 data lines currently).
 // Change this if it clashes with other usages (0-2)
 #define REFRESH_TIMER_NUMBER	0
 
-// Target total refresh rate in microseconds. 6000uS gives a good flicker-free display at around 150Hz
+// Target total refresh rate in microseconds. 12000uS gives a good 
+// flicker-free display at around 75Hz for max 6-bit colour depth,
+// but this can be reduced for smaller colour depths
 static const uint64_t REFRESH_INTERVAL_uS = 12000;
