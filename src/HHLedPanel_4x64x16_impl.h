@@ -28,8 +28,9 @@ Hitchin Hackspce LED display panels arranged as a 64x64 matrix. This is construc
 as 4 panels of 64x16 LEDs aranged vertically and driven in parallel by the 
 platform driver.
 ******************************************************************************/
+#pragma once
 #include <Arduino.h>
-#include "ledpanel-gamma8.h"
+#include "hhledpanel-gamma.h"
 
 template<class PLATFORMTYPE, unsigned short COLOUR_DEPTH> class HHLedPanel_4x64x16_impl
 {
@@ -43,17 +44,24 @@ private:
   byte frameBuffers[COLOUR_DEPTH][ADDRESS_PLANES][CHIPS_PER_DATA_LINE * LEDS_PER_CHIP];  // [bit][plane][chip]
   
 public:
+  HHLedPanel_4x64x16_impl()
+  {
+  }
+  
   void initialise(uint16_t maxBrightnessPercent)
   {
 	// Setup the hardware
 	PLATFORMTYPE::Initialise(frameBuffers[0][0], COLOUR_DEPTH, ADDRESS_PLANES, CHIPS_PER_DATA_LINE * LEDS_PER_CHIP);
 	
-	// Set the base brighness
-	PLATFORMTYPE::SetBrightness(maxBrightnessPercent);
-	
 	// Clear the screen
 	FillBuffer(0);
-
+	
+	// Set the base brightness
+	PLATFORMTYPE::SetBrightness(maxBrightnessPercent);
+  }
+  
+  void begin()
+  {
 	// Start refrshing the screen
 	PLATFORMTYPE::StartDisplay();
   }

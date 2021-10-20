@@ -28,7 +28,7 @@
 #define MAX_BRIGHTNESS  12  // 12%-200%. At 12% four panels consume around 6 amps, at 100% around 40 amps.
 
 // Static display panel interface
-HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>> *panel = new HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>>();
+HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>> *panel = new HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>>(MAX_BRIGHTNESS);
 
 #define DISPLAY_WIDTH 64
 #define DISPLAY_HEIGHT 64
@@ -185,8 +185,6 @@ void setup() {
 //  while (!Serial);
 
   // Start the display
-  panel->initialise(MAX_BRIGHTNESS);
-
   panel->begin();
   panel->setRotation(1);
   panel->fillScreen(0xffff);  // Must be same as GIF backgrounds

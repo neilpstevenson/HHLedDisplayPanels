@@ -34,8 +34,6 @@ on an ESP32-DevKitC board connected to 4 panels as a 64x64 square.
 // Adafruit GFX interface
 #include <HHLedPanel.h>
 
-#include <gfxfont.h>
-#include <fonts/FreeSerifBoldItalic9pt7b.h>
 #include "hhLogoBmp.h"
 
 #define MAX_BRIGHTNESS  12  // 12%-200%. At 12% four panels consume around 6 amps, at 100% around 40 amps.
@@ -50,7 +48,7 @@ on an ESP32-DevKitC board connected to 4 panels as a 64x64 square.
 #define WHITE    0xFFFF
 
 // Static display panel interface
-HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 5>> panel;
+HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 5>> panel(MAX_BRIGHTNESS);
 
 void showTestScreen()
 {
@@ -77,7 +75,7 @@ void showTestScreen()
 
 void setup() {
   // Start the display
-  panel.initialise(MAX_BRIGHTNESS);
+  panel.begin();
 
   // Test screen once only
   showTestScreen();

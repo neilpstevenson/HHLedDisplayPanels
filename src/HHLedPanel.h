@@ -27,28 +27,27 @@ This class implements the Adafruit GFX interface to allow all of the Adafruit
 graphic primitives and examples to be used with the Hitchin Hackspce LED display 
 panels in the same way as other Adafruit LCD and OLED display panels.
 ******************************************************************************/
-#include <Adafruit_GFX.h>
+#pragma once
+//#include <Adafruit_GFX.h>
+#include <Arduino_GFX.h>
 
-template<class PANELTYPE> class HHLedPanel : public Adafruit_GFX
+template<class PANELTYPE, class BASECLASS = Arduino_GFX> class HHLedPanel : public BASECLASS
 {
   private:
     PANELTYPE _panel_impl;
 	uint16_t block_x, block_y, block_w, block_h;
     
   public: 
-    HHLedPanel() : Adafruit_GFX(_panel_impl.getWidth(), _panel_impl.getHeight())
+    HHLedPanel(uint16_t maxBrightnessPercent = 12) : BASECLASS(_panel_impl.getWidth(), _panel_impl.getHeight())
     {
-    }
-    
-    // Setup the hardware
-    void initialise(uint16_t maxBrightnessPercent)
-    {
+		// Setup the hardware
       _panel_impl.initialise(maxBrightnessPercent);
     }
     
 	// These are for compatibility with the Adafruit_SPITFT interface
-	void begin(uint32_t freq = 0)
+	void begin(uint32_t freq)
 	{
+      _panel_impl.begin();
 	}
    
     void setAddrWindow(uint16_t x, uint16_t y, uint16_t w,
@@ -71,11 +70,21 @@ template<class PANELTYPE> class HHLedPanel : public Adafruit_GFX
 	}
 	
 	// These are for compatibility with the Arduino_GFX interface
+	void begin(int32_t speed = 0)
+	{
+      _panel_impl.begin();
+	}
+	
+	void writePixelPreclipped(int16_t x, int16_t y, uint16_t color)
+	{
+      _panel_impl.drawPixel(x,y,color);
+	}
+	
 	void drawIndexedBitmap(int16_t x, int16_t y, uint8_t *bitmap, uint16_t *color_index, int16_t w, int16_t h)
 	{
 		//Serial.printf("\ndib: %d,%d %d,%d\n", x, y, w, h);
 		int32_t offset = 0;
-		startWrite();
+		BASECLASS::startWrite();
 		for (int16_t j = 0; j < h; j++, y++)
 		{
 			for (int16_t i = 0; i < w; i++)
@@ -84,9 +93,10 @@ template<class PANELTYPE> class HHLedPanel : public Adafruit_GFX
 				_panel_impl.drawPixel(x + i, y, color_index[bitmap[offset++]]);
 			}
 		}
-		endWrite();
+		BASECLASS::endWrite();
 	}
-	
+
+	// These are common between the supported interfaces
     void drawPixel(int16_t x, int16_t y, uint16_t color) 
     {
       _panel_impl.drawPixel(x,y,color);
@@ -99,7 +109,7 @@ template<class PANELTYPE> class HHLedPanel : public Adafruit_GFX
       else if(color == 0xffff)
         _panel_impl.Clear(true);
       else
-        Adafruit_GFX::fillScreen(color);
+        BASECLASS::fillScreen(color);
     }
     
     void clear()

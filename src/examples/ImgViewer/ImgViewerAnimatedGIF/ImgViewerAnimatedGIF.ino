@@ -24,7 +24,7 @@
 #if defined(ARDUINO_ARCH_SAMD) && defined(SEEED_GROVE_UI_WIRELESS)
 #define GIF_FILENAME "/badger.gif" //"/ezgif.com-optimize.gif"
 #elif defined(ESP32)
-#define GIF_FILENAME "/santa.gif" //"/xmastree.gif" //"/ezgif.com-small.gif" //"/badger.gif" //"/ezgif.com-optimize.gif"
+#define GIF_FILENAME "/badger.gif" //"/santa.gif" //"/xmastree.gif" //"/ezgif.com-small.gif" //"/badger.gif" //"/ezgif.com-optimize.gif"
 #else
 #define GIF_FILENAME "/badger.gif" //"/ezgif.com-optimize.gif"
 #endif
@@ -41,7 +41,7 @@
 #define MAX_BRIGHTNESS  12  // 12%-200%. At 12% four panels consume around 6 amps, at 100% around 40 amps.
 
 // Static display panel interface
-HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>> *panel = new HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>>();
+HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>> *panel = new HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>>(MAX_BRIGHTNESS);
 
 /*******************************************************************************
  * End of Arduino_GFX setting
@@ -69,7 +69,7 @@ void setup()
   Serial.begin(115200);
 
   // Init Display
-  panel->initialise(MAX_BRIGHTNESS);
+  panel->begin();
 }
 
 void loop()

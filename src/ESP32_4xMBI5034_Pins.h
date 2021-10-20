@@ -27,6 +27,7 @@ This file contains the pin assignments and performance criteria used to refresh
 a set of 4 LED display panels using MBI5034 chips arranged as 2 data pins per 
 panel (i.e. maximum of 8 data lines currently).
 ******************************************************************************/
+#pragma once
 
 // These are for the ESP32-DevKitC board with WROOM chip
 // Only unused GPIO pins 0-31 are usable as the PIN_Dx or PIN_Ax pins

@@ -205,6 +205,12 @@ void ESP32_4xMBI5034::SetBrightness(uint16_t brighnessPercent)
   // if H=0, Current = 0.125-0.488
   // if H=1, Current = 0.508-1.938, where 0b1011=1 (100%)
   
+  // Stop the refresh interrupt, this will disrupt the setting
+  if(timer_Refresh)
+  {
+	  timerAlarmDisable(timer_Refresh);
+  }
+
   // Calculate the approx brightness control around 100%
   uint32_t brightness = 0;
   const uint32_t brightness100pc = 0x2b;

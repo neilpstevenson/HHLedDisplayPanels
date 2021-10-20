@@ -30,6 +30,7 @@ This class encapsulates the platform-specific driver for refreshing a set of
 This version uses a fast timer interrupt to output one logical row (2 physical 
 rows) per interrupt and allows up to a 5-bit colour depth to be used.
 ******************************************************************************/
+#pragma once
 #include <Arduino.h>
 
 class ESP32_4xMBI5034

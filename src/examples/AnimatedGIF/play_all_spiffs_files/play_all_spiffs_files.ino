@@ -24,20 +24,11 @@
 #define MAX_BRIGHTNESS  12  // 12%-200%. At 12% four panels consume around 6 amps, at 100% around 40 amps.
 
 // Static display panel interface
-HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>> *panel = new HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>>();
+HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>> *panel = new HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>>(MAX_BRIGHTNESS);
 
 
 // Demo sketch to play all GIF files in a directory
-// Tested on TTGO T-Camera Plus
-
-#define LED_PIN       2
-#define CS_PIN        12
-#define SD_CS_PIN 0
-#define RESET_PIN     -1
-#define DC_PIN        15
-#define MOSI_PIN 19
-#define SCK_PIN 21
-#define MISO_PIN 22
+// Tested on ESP32-DevBoardC/NodeMCU
 
 #define DISPLAY_WIDTH 64
 #define DISPLAY_HEIGHT 64
@@ -198,7 +189,7 @@ void setup() {
   while (!Serial);
 
   // Start the display
-  panel->initialise(MAX_BRIGHTNESS);
+  panel->begin();
 
 /* Wio Terminal */
 #if defined(ARDUINO_ARCH_SAMD) && defined(SEEED_GROVE_UI_WIRELESS)
