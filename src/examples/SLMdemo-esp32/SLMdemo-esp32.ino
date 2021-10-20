@@ -95,7 +95,7 @@ added 'macro to text commands' to store chars in Filemem and clean up somespace 
 #define WHITE    0xFFFF
 
 // Static display panel interface
-HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 5>, Adafruit_GFX> panel(MAX_BRIGHTNESS);
+HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 1>, Adafruit_GFX> panel(MAX_BRIGHTNESS);
 
 
 void setup() {
@@ -303,24 +303,6 @@ void loop(){
       panel.println(F("Hello"));
       delay(3000); 
 
-    for (int ct=0; ct < 256; ct += 1)
-    {
-      panel.clear();
-      panel.setCursor(1, 18);
-      panel.setTextColor(panel.make_colour(ct, ct, ct));  
-      panel.setTextSize(1);
-      panel.printf("Fade %d", ct);
-      delay(25);
-    }
-    for (int ct=256-8; ct > 0; ct -= 1)
-    {
-      panel.clear();
-      panel.setCursor(1, 18);
-      panel.setTextColor(panel.make_colour(ct, ct, ct));  
-      panel.setTextSize(1);
-      panel.printf("Fade %d", ct);
-      delay(25);
-    }
 /*    
     for (int ct=0; ct < 256; ct += 8)
     {
@@ -376,9 +358,9 @@ void loop(){
       panel.printf("Fade %d", ct);
       delay(400);
     }
-*/
+
     delay(3000); 
-/*
+
     for(int h = 0; h < 48; h++)
     {
       panel.clear();

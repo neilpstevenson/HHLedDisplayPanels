@@ -48,7 +48,7 @@ on an ESP32-DevKitC board connected to 4 panels as a 64x64 square.
 #define WHITE    0xFFFF
 
 // Static display panel interface
-HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 5>> panel(MAX_BRIGHTNESS);
+HHLedPanel<HHLedPanel_4x64x16_impl<ESP32_4xMBI5034, 6>> panel(MAX_BRIGHTNESS);
 
 void showTestScreen()
 {
@@ -98,8 +98,34 @@ void showHHLogo()
     }
 }
 
+void testFade()
+{
+    panel.clear();
+    panel.drawLine(0,16, panel.width(), 16, WHITE);
+    panel.drawLine(0,34, panel.width(), 34, WHITE);
+    for (int ct=0; ct < 256; ct += 2)
+    {
+      panel.fillRect(0, 18, panel.width(), 16, BLACK);
+      panel.setCursor(1, 18);
+      panel.setTextColor(panel.make_colour(ct, ct, ct));  
+      panel.setTextSize(1);
+      panel.printf("Fade Up   %4d", ct);
+      delay(50);
+    }
+    for (int ct=256-8; ct > 0; ct -= 2)
+    {
+      panel.fillRect(0, 18, panel.width(), 16, BLACK);
+      panel.setCursor(1, 18);
+      panel.setTextColor(panel.make_colour(ct, ct, ct));  
+      panel.setTextSize(1);
+      panel.printf("Fade Down %4d", ct);
+      delay(50);
+    }
+}
+
 void loop()
 {
    showHHLogo();
    delay(4000); 
+   testFade();
 }
