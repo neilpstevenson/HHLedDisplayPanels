@@ -82,7 +82,7 @@ public:
     // Clip to panel
     if(x < 0 || x >= getWidth() || y < 0 || y >= getHeight())
       return;
-
+  
     // Split the colour into RGB parts and gamma-correct the result
     uint8_t red = gamma6[(col >> 10) & 0x3e];
     uint8_t green = gamma6[(col >> 5) & 0x3f];

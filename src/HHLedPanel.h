@@ -77,7 +77,7 @@ template<class PANELTYPE, class BASECLASS = Arduino_GFX> class HHLedPanel : publ
 	
 	void writePixelPreclipped(int16_t x, int16_t y, uint16_t color)
 	{
-      _panel_impl.drawPixel(x,y,color);
+		drawPixel(x,y,color);
 	}
 	
 	void drawIndexedBitmap(int16_t x, int16_t y, uint8_t *bitmap, uint16_t *color_index, int16_t w, int16_t h)
@@ -90,7 +90,7 @@ template<class PANELTYPE, class BASECLASS = Arduino_GFX> class HHLedPanel : publ
 			for (int16_t i = 0; i < w; i++)
 			{
 				//Serial.printf("%3d",bitmap[offset]);
-				_panel_impl.drawPixel(x + i, y, color_index[bitmap[offset++]]);
+				drawPixel(x + i, y, color_index[bitmap[offset++]]);
 			}
 		}
 		BASECLASS::endWrite();
@@ -99,7 +99,21 @@ template<class PANELTYPE, class BASECLASS = Arduino_GFX> class HHLedPanel : publ
 	// These are common between the supported interfaces
     void drawPixel(int16_t x, int16_t y, uint16_t color) 
     {
-      _panel_impl.drawPixel(x,y,color);
+		// Apply any rotation in effect
+		switch (BASECLASS::getRotation()) {
+		case 1:
+			_panel_impl.drawPixel(_panel_impl.getWidth() - 1 - y, x, color);
+			break;
+		case 2:
+			_panel_impl.drawPixel(_panel_impl.getWidth() - 1 - x, _panel_impl.getHeight() - 1 - y, color);
+			break;
+		case 3:
+			_panel_impl.drawPixel(y, _panel_impl.getHeight() - 1 - x, color);
+			break;
+		 default:
+			_panel_impl.drawPixel(x, y, color);
+			break;
+		}
     }
 
     void fillScreen(uint16_t color)
