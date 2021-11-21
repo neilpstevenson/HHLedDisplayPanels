@@ -44,10 +44,16 @@ panel (i.e. maximum of 8 data lines currently).
 #define PIN_A0    GPIO_NUM_5   // A0 on all Panels
 #define PIN_A1    GPIO_NUM_18  // A1 on all Panels
 
-// The control pins can be on any unused GPIO pins 0-36
+// The control pins can be on any unused GPIO pins 0-39
 #define PIN_CLK   GPIO_NUM_22  // CLK on all Panels
 #define PIN_LAT   GPIO_NUM_21  // LAT on all Panels
 #define PIN_OE    GPIO_NUM_19  // OE on all Panels
+
+// These are for 16 panel configuration
+#define PIN_CLK0   GPIO_NUM_22  // CLK on Panels 1-4
+#define PIN_CLK1   GPIO_NUM_25  // CLK on Panels 5-8
+#define PIN_CLK2   GPIO_NUM_26  // CLK on Panels 9-12
+#define PIN_CLK3   GPIO_NUM_27  // CLK on Panels 13-16
 
 // All panel refreshes are done through a hardware timer interrupt
 // Change this if it clashes with other usages (0-2)
