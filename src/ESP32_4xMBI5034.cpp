@@ -243,7 +243,7 @@ void ESP32_4xMBI5034::SetBrightness(uint16_t brighnessPercent)
       {
         GPIO.out = ((controlRegister & 0x8000) ? all_D_bits : 0)
                     | (n < 12 || chip != 23 ? 0 : BIT(PIN_LAT)) 
-                    | addr | out;
+                    | addr | out | BIT(PIN_OE);
         GPIO.out_w1ts = BIT(PIN_CLK);  
       }
       GPIO.out_w1tc = BIT(PIN_CLK);  
