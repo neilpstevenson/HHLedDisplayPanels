@@ -170,7 +170,7 @@ void IRAM_ATTR ESP32_16xMBI5034::RefreshInterrupt()
 	static uint8_t intCount = 0;
 
 	// We ignore the interrups unless the refresh time has expired for the bit currently being displayed
-	if(!(++intCount >> (_colourDepth - depth - 1)))
+	if(!(intCount++ >> (_colourDepth - depth - 1)))
 		return;
 	intCount = 0;
 	

@@ -1,12 +1,18 @@
 #include <AnimatedGIF.h>
 
+#define USE_SDCARD 1
+
+
 /* Wio Terminal */
 #if defined(ARDUINO_ARCH_SAMD) && defined(SEEED_GROVE_UI_WIRELESS)
 #include <Seeed_FS.h>
 #include <SD/Seeed_SD.h>
 #elif defined(ESP32)
+#ifndef USE_SDCARD
 #include <SPIFFS.h>
-// #include <SD.h>
+#else
+#include <SD.h>
+#endif
 #elif defined(ESP8266)
 #include <LittleFS.h>
 #include <SD.h>
@@ -133,8 +139,11 @@ void * GIFOpenFile(const char *fname, int32_t *pSize)
 #if defined(ARDUINO_ARCH_SAMD) && defined(SEEED_GROVE_UI_WIRELESS)
     f = SD.open(fname, "r");
 #elif defined(ESP32)
+#ifndef USE_SDCARD
     f = SPIFFS.open(fname, "r");
-    // File gifFile = SD.open(fname, "r");
+#else    
+    f = SD.open(fname, "r");
+#endif
 #elif defined(ESP8266)
     f = LittleFS.open(fname, "r");
     // f = SD.open(fname, "r");
@@ -192,12 +201,20 @@ void setup() {
   panel->begin();
   panel->setRotation(1);
 
+  // Allow time for SD card to initialise
+  delay(200);
+
 /* Wio Terminal */
 #if defined(ARDUINO_ARCH_SAMD) && defined(SEEED_GROVE_UI_WIRELESS)
   if (!SD.begin(SDCARD_SS_PIN, SDCARD_SPI, 4000000UL))
 #elif defined(ESP32)
+#ifndef USE_SDCARD
   if (!SPIFFS.begin())
-  // if (!SD.begin(SS))
+#else
+  static SPIClass mySPI(HSPI);
+  //mySPI.begin(GPIO_NUM_14, GPIO_NUM_12, GPIO_NUM_13);
+  while (!SD.begin(GPIO_NUM_23, mySPI, 16000000UL))
+#endif
 #elif defined(ESP8266)
   if (!LittleFS.begin())
   // if (!SD.begin(SS))
@@ -206,7 +223,10 @@ void setup() {
 #endif
   {
     Serial.println("SD card init failed!");
-    while (1); // SD initialisation failed so wait here
+    panel->clear();
+    panel->println("No SD card found");
+    //while (1); // SD initialisation failed so wait here
+    delay(500);
   }
   Serial.println("SD Card init success!");
 
@@ -228,10 +248,23 @@ void ShowGIF(char *name)
     if (y_offset < 0) y_offset = 0;
     Serial.printf("Successfully opened GIF; Canvas size = %d x %d\n", gif.getCanvasWidth(), gif.getCanvasHeight());
     Serial.flush();
-    while (gif.playFrame(true, NULL))
-    {      
+    int pfr;
+    while ((pfr = gif.playFrame(true, NULL)) > 0)
+    {     
+       //Serial.printf("%d,", pfr); 
+       //Serial.flush();
+    }
+    if(pfr < 0)
+    {
+       Serial.printf("playFrame returned error %d\n", pfr); 
+       Serial.flush();
     }
     gif.close();
+  }
+  else
+  {
+    Serial.printf("Failed to open GIF file.\n");
+    Serial.flush();
   }
 
 } /* ShowGIF() */
@@ -250,21 +283,26 @@ int i;
   }
   return (fname[i+1] == '.'); // found a dot?
 }
+
+
 void loop() {
 
 char *szDir = "/GIF"; // play all GIFs in this directory on the SD card
 char fname[256];
 File root, temp;
 
-   while (1) // run forever
+//   while (1) // run forever
    {
       //root = SD.open(szDir);
 /* Wio Terminal */
 #if defined(ARDUINO_ARCH_SAMD) && defined(SEEED_GROVE_UI_WIRELESS)
     root = SD.open(szDir, "r");
 #elif defined(ESP32)
+#ifndef USE_SDCARD
     root = SPIFFS.open(szDir, "r");
-    // File gifFile = SD.open(szDir, "r");
+#else
+    root = SD.open(szDir, "r");
+#endif
 #elif defined(ESP8266)
     root = LittleFS.open(szDir, "r");
     // root = SD.open(szDir, "r");
@@ -291,6 +329,7 @@ File root, temp;
             }
          root.close();
       } // root
-      delay(4000); // pause before restarting
+      
+      //delay(4000); // pause before restarting
    } // while
 } /* loop() */

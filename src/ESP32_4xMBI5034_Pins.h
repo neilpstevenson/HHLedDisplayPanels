@@ -60,4 +60,4 @@ panel (i.e. maximum of 8 data lines currently).
 #define REFRESH_TIMER_NUMBER	0
 
 // Target total refresh rate in microseconds. 6000uS gives a good flicker-free display at around 150Hz
-static const uint64_t REFRESH_INTERVAL_uS = 12000;
+static const uint64_t REFRESH_INTERVAL_uS = 6000;
