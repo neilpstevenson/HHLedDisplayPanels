@@ -128,6 +128,7 @@ template<class PANELTYPE, class BASECLASS = Arduino_GFX> class HHLedPanel : publ
     
     void clear()
     {
+	  BASECLASS::setCursor(0,0);
       _panel_impl.Clear();
     }
 	
