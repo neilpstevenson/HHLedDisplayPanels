@@ -197,6 +197,8 @@ void setup() {
   Serial.begin(115200);
   while (!Serial);
 
+  delay(1000);
+
   // Start the display
   panel->begin();
   panel->setRotation(1);
@@ -213,7 +215,7 @@ void setup() {
 #else
   static SPIClass mySPI(HSPI);
   //mySPI.begin(GPIO_NUM_14, GPIO_NUM_12, GPIO_NUM_13);
-  while (!SD.begin(GPIO_NUM_23, mySPI, 16000000UL))
+  while (!SD.begin(GPIO_NUM_23, mySPI, 4000000UL))
 #endif
 #elif defined(ESP8266)
   if (!LittleFS.begin())
