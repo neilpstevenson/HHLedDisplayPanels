@@ -33,8 +33,8 @@
 #define UNIVERSE_COUNT (UNIVERSE + display.width() - 1)  // Total number of Universes to listen for, starting at UNIVERSE
 #define BUFFER_COUNT 96              // Total number packets that we can buffer. Ideally same as UNIVERSE_COUNT, but memory constrains limit this!
 
-const char ssid[] = "NeilHomeD";         // Replace with your SSID
-const char passphrase[] = "netgearhell";   // Replace with your WPA2 passphrase
+const char ssid[] = "xxxx";         // Replace with your SSID
+const char passphrase[] = "pppp";   // Replace with your WPA2 passphrase
 
 // ESPAsyncE131 instance with BUFFER_COUNT buffer slots
 ESPAsyncE131 e131(BUFFER_COUNT);
